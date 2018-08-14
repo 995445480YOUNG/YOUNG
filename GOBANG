@@ -1,3 +1,281 @@
+#ifndef GOBANGBOARD_H_
+#include<iostream>
+#include<string>
+using namespace std;
+//#define ROW 15
+//#define COL 15
+const int ROW = 15;
+const int COL = 15;
+static char m_cSquare[ROW][COL];
+class GoBangBoard  //棋盘类
+{
+	//enum { ROW = 15, COL = 15 };
+//private: 
+	//char m_cSquare[ROW][COL];
+public:
+	GoBangBoard();
+	void GoBangShow();
+//	void setboard(int x, int y);
+};
+
+struct Position
+{
+	int x;
+	int y;
+};
+
+class Player
+{
+private:
+	string name;
+	char mChessType;
+	Position pos;
+	GoBangBoard *gobandboard;
+public:
+	Player(string _name, char _mChessType) :name(_name), mChessType(_mChessType){};
+	Player() {};
+	void showplayer();//显示参赛者信息
+	void attach(GoBangBoard* _board);//粘贴棋盘
+	char setChess();//设置参赛者信息
+	int friststep( Player& p1);//设置谁先走
+	bool isboard(int,int);//下的棋子是否在棋盘上
+	void inchess();//下棋中
+	int iswinganme();//判断输赢
+	~Player() {};
+};
+
+#endif
+
+#include<iostream>
+#include"gobangboard.h"
+#include<iomanip>
+using namespace std;
+GoBangBoard::GoBangBoard()
+{
+	for (int i = 1; i < ROW; i++)
+		for (int j = 1; j < ROW; j++)
+			m_cSquare[i][j] = ' ';
+}
+
+void GoBangBoard::GoBangShow()
+{
+	system("cls");
+	for (int i = 0; i < ROW; i++)
+	{
+		cout << setw(3) << setfill(' ') << i << '|';
+	}
+	cout << endl;
+	for (int i = 0; i < ROW; i++)
+	{
+		cout << setw(4) << setfill('-') << '|';
+	}
+	cout << endl;
+	for (int i = 1; i < ROW; i++)
+	{
+		for (int j = 0; j < COL; j++)
+		{
+			if (j == 0)
+				cout << setw(3) << setfill(' ') << i << '|';
+			else
+				cout << setw(3) << m_cSquare[i][j] << '|';
+		}
+		cout << endl;
+		for (int i = 0; i < ROW; i++)
+		{
+			cout << setw(4) << setfill('-') << '|';
+		}
+		cout << endl;
+	}
+}
+
+void Player::attach(GoBangBoard* _board)//粘贴棋盘
+   { 
+	//system("cls");
+	//cout << "OK!!!" << endl;
+	gobandboard = _board;
+   }
+void  Player::showplayer()//显示参赛者信息
+{
+	cout << "Player name: " << name << endl;
+	//cout << "Player chess type: " << mChessType << endl;
+}
+char Player::setChess()//设置参赛者信息
+{
+	//system("cls");
+	cout << "Please set Player information:" << endl;
+	cout << "Enter player name: ";
+	cin >> name;
+	cout << "Enter player chess type: ";
+	cin >> mChessType;
+	while ((mChessType != 'o') && (mChessType != '*'))
+	{
+		cout << "Please enter leagel mChessType: ";
+		cin >> mChessType;
+	}
+	return mChessType;
+}
+int Player::friststep( Player& p1)
+{
+	if (p1.setChess() == '*')
+	{
+		return 1;
+	}	
+	else
+	    return 2;
+}
+
+bool Player::isboard(int x,int y) //下的棋子是否在棋盘上
+{
+	if ((x > ROW) && (x < 0) && (y > ROW) && (y < 0))
+	{
+		cout << "Extend board!!!" << endl;
+		return false;
+	}
+	else
+		return true;
+}
+
+void Player::inchess()//下棋中
+{
+	showplayer();
+	cout << "Please enter chess position:" << endl;
+	cout << "Please enter ROW :";
+	cin>>pos.x;
+	cout << "Please enter COL:";
+	cin >> pos.y;
+	if (isboard(pos.x, pos.y) == true)
+	{
+		if (m_cSquare[pos.x][pos.y] !=' ' )
+		{
+			cout << "该位置已有棋子，请重新输入该棋子\n";
+			inchess();
+		}	
+		else
+			m_cSquare[pos.x][pos.y] = mChessType;
+	}
+	else 
+		inchess();
+}
+int Player::iswinganme()
+{
+	int tempX;
+	int tempY;
+	int count = 0;
+	bool flagwingame = false;
+	if (flagwingame == false)
+	{
+		for (int i = 0; i < 4; i++) //以此判断水平方向，垂直方向，正对角线方向，负对角线方向连续五个棋子是否相同
+		{
+			for (int j = -4; j < 4; j++)
+			{
+				//	if (j == 0)
+				//		continue;
+				switch (i)
+				{
+				case 0:tempX = pos.x; tempY = pos.y + j; break;
+				case 1:tempX = pos.x + j; tempY = pos.y; break;
+				case 2:tempX = pos.x - j; tempY = pos.y + j; break;
+				case 3:tempX = pos.x + j; tempY = pos.y + j; break;
+				}
+				if ((isboard(pos.x, pos.y) == true) && (m_cSquare[tempX][tempY] == m_cSquare[pos.x][pos.y]))
+					count++;
+				else
+					count = 0;
+				if (count == 5)
+					return 1;  //胜
+			}
+		}
+		flagwingame == true;
+	}
+	else
+	{
+		int i, j;
+		for (i = 1; i < ROW; i++)
+			for (j = 1; i < COL; j++)
+				if (m_cSquare[i][j] == ' ')
+					;
+		if ((i == ROW - 1) && (i == COL - 1))
+		{
+			cout << "平局！！！！" << endl;
+			return 2;//平局
+		}
+		flagwingame == false;
+	}
+	return 0;//输
+}
+
+
 #include<iostream>
 #include<iomanip>
 #include"gobangboard.h"
+
+void main()
+{
+	GoBangBoard board;
+	Player playerA;
+	Player playerB;
+	playerA.attach(&board);
+	playerB.attach(&board);
+	//playerA.setChess();
+//	playerB.setChess();
+//	playerA.showplayer();
+	//playerA.inchess();
+	//playerB.inchess();
+	//board.GoBangShow();
+//	playerB.showplayer();
+	char chessTypeFristFlag = playerA.setChess();
+	playerB.setChess();
+	int flag;
+	int win_flag;
+	if (chessTypeFristFlag == '*')
+	{
+		playerA.showplayer();
+		cout << "frist step!!!" << endl; 
+		playerA.inchess();
+		board.GoBangShow();
+		flag = 1;
+	}	
+	else if(chessTypeFristFlag != '*')
+	{
+		playerB.showplayer();
+		cout << "frist step!!!" << endl;
+		playerB.inchess();
+		board.GoBangShow();
+		flag = 2;
+	}
+
+	while (1)
+	{
+		if (flag == 1)
+		{
+			playerB.showplayer();
+			cout<< "now enter position " << endl;
+			playerB.inchess();
+			board.GoBangShow();
+			win_flag = playerB.iswinganme();
+			if (win_flag == 1)
+			{
+				playerB.showplayer();
+				cout << " win this game!!!!";
+				break;
+			}
+			flag = 2;
+		}	
+		else
+		{
+			playerA.showplayer();
+			cout << "now enter position " << endl;
+			playerA.inchess();
+			board.GoBangShow();
+			win_flag = playerA.iswinganme();
+			if (win_flag == 1)
+			{
+				playerA.showplayer();
+				cout << " win this game!!!!";
+				break;
+			}
+			flag = 1;
+		}
+	}
+	system("pause");
+}
